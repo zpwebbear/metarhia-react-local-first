@@ -1,0 +1,21 @@
+{
+  "name": "react-local-first-example",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+  },
+  "workspaces": [
+    "packages/frontend",
+    "packages/backend"
+  ],
+  "keywords": [],
+  "author": "Dmytro Brahinets <zp.babu@gmail.com>",
+  "license": "MIT",
+  "description": "Educational example of a local-first application built with React and Node.js.",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
