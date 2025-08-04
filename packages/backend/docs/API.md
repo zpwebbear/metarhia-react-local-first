@@ -16,7 +16,7 @@ Statistics endpoint should return the total amount of expenses grouped by catego
   - `categoryId`: The identifier of the category to which this expense belongs.
   - `description`: A brief description of the expense (optional, defaults to an empty string).
 - `GET /expenses/:id`: Get an expense by ID.
-- `PUT /expenses/:id`: Update an expense by ID.
+- `PATCH /expenses/:id`: Update an expense by ID.
 - `DELETE /expenses/:id`: Delete an expense by ID.
 
 ### Categories

@@ -1,0 +1,101 @@
+'use strict'
+
+// Common expense object schema
+const expenseObject = {
+  type: 'object',
+  properties: {
+    id: { type: 'integer' },
+    name: { type: 'string' },
+    amount: { type: 'number' },
+    date: { type: 'string', format: 'date' },
+    categoryid: { type: 'integer' },
+    description: { type: 'string' },
+    created_at: { type: 'string', format: 'date-time' },
+    updated_at: { type: 'string', format: 'date-time' }
+  }
+}
+
+// Common error response schema
+const errorResponse = {
+  type: 'object',
+  properties: {
+    error: { type: 'string' }
+  }
+}
+
+// ID parameter schema
+const idParam = {
+  type: 'object',
+  properties: {
+    id: { type: 'integer' }
+  }
+}
+
+// Create expense request body schema
+const createExpenseBody = {
+  type: 'object',
+  required: ['name', 'amount', 'categoryId'],
+  properties: {
+    name: { type: 'string' },
+    amount: { type: 'number' },
+    date: { type: 'string', format: 'date' },
+    categoryId: { type: 'integer' },
+    description: { type: 'string' }
+  }
+}
+
+// Update expense request body schema
+const updateExpenseBody = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    amount: { type: 'number' },
+    date: { type: 'string', format: 'date' },
+    categoryId: { type: 'integer' },
+    description: { type: 'string' }
+  }
+}
+
+module.exports = {
+  // Route schemas
+  getAllExpenses: {
+    response: {
+      200: {
+        type: 'array',
+        items: expenseObject
+      }
+    }
+  },
+
+  createExpense: {
+    body: createExpenseBody,
+    response: {
+      201: expenseObject
+    }
+  },
+
+  getExpenseById: {
+    params: idParam,
+    response: {
+      200: expenseObject,
+      404: errorResponse
+    }
+  },
+
+  updateExpense: {
+    params: idParam,
+    body: updateExpenseBody,
+    response: {
+      200: expenseObject,
+      404: errorResponse
+    }
+  },
+
+  deleteExpense: {
+    params: idParam,
+    response: {
+      204: { type: 'null' },
+      404: errorResponse
+    }
+  }
+}

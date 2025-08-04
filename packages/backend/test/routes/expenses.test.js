@@ -49,7 +49,6 @@ test('Expenses E2E Tests', async (t) => {
       method: 'GET',
       url: '/expenses'
     })
-    console.log("ES", res)
     
     assert.strictEqual(res.statusCode, 200)
     assert.strictEqual(res.headers['content-type'], 'application/json; charset=utf-8')
@@ -112,13 +111,26 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 400)
   })
 
+  await t.test('POST /expenses - should return 400 for non-existent category', async () => {
+    const invalidExpenseWithCategory = {
+      ...validExpense,
+      categoryId: 99999 // Non-existent category ID
+    }
+    
+    const res = await app.inject({
+      method: 'POST',
+      url: '/expenses',
+      payload: invalidExpenseWithCategory
+    })
+    assert.strictEqual(res.statusCode, 400)
+  });
+
   await t.test('POST /expenses - should return 400 for empty payload', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/expenses',
       payload: {}
     })
-    
     assert.strictEqual(res.statusCode, 400)
   })
 
@@ -181,7 +193,7 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 400)
   })
 
-  await t.test('PUT /expenses/:id - should update existing expense', async () => {
+  await t.test('PATCH /expenses/:id - should update existing expense', async () => {
     const updateData = {
       name: 'Updated Expense',
       amount: 200.75,
@@ -191,7 +203,7 @@ test('Expenses E2E Tests', async (t) => {
     }
     
     const res = await app.inject({
-      method: 'PUT',
+      method: 'PATCH',
       url: `/expenses/${t.expenseId}`,
       payload: updateData
     })
@@ -207,13 +219,13 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(expense.date, updateData.date)
   })
 
-  await t.test('PUT /expenses/:id - should update expense with partial data', async () => {
+  await t.test('PATCH /expenses/:id - should update expense with partial data', async () => {
     const updateData = {
       name: 'Partially Updated Expense'
     }
     
     const res = await app.inject({
-      method: 'PUT',
+      method: 'PATCH',
       url: `/expenses/${t.expenseId2}`,
       payload: updateData
     })
@@ -228,9 +240,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(expense.categoryid, validExpenseWithoutOptional.categoryId)
   })
 
-  await t.test('PUT /expenses/:id - should return 404 for non-existent expense', async () => {
+  await t.test('PATCH /expenses/:id - should return 404 for non-existent expense', async () => {
     const res = await app.inject({
-      method: 'PUT',
+      method: 'PATCH',
       url: '/expenses/99999',
       payload: { name: 'Updated Name' }
     })
@@ -241,13 +253,23 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(error.error, 'Expense not found')
   })
 
-  await t.test('PUT /expenses/:id - should return 400 for invalid ID format', async () => {
+  await t.test('PATCH /expenses/:id - should return 400 for invalid ID format', async () => {
     const res = await app.inject({
-      method: 'PUT',
+      method: 'PATCH',
       url: '/expenses/invalid-id',
       payload: { name: 'Updated Name' }
     })
     
+    assert.strictEqual(res.statusCode, 400)
+  })
+
+  await t.test('PATCH /expenses/:id - should return 400 for invalid category ID', async () => {
+    const res = await app.inject({
+      method: 'PATCH',
+      url: `/expenses/${t.expenseId}`,
+      payload: { categoryId: 99999 }
+    })
+
     assert.strictEqual(res.statusCode, 400)
   })
 
