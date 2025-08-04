@@ -26,7 +26,7 @@ Statistics endpoint should return the total amount of expenses grouped by catego
   The request body should contain the following fields:
   - `name`: The name of the category.
 - `GET /categories/:id`: Get a category by ID.
-- `PUT /categories/:id`: Update a category by ID.
+- `PATCH /categories/:id`: Update a category by ID.
 - `DELETE /categories/:id`: Delete a category by ID.
 
 ### Statistics
