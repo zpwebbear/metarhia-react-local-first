@@ -5,7 +5,16 @@
 
 const { build: buildApplication } = require('fastify-cli/helper')
 const path = require('node:path')
+const dotenv = require('dotenv')
+const { TestMigrator } = require('./test-migrator')
+
 const AppPath = path.join(__dirname, '..', 'app.js')
+
+// Set test environment
+process.env.NODE_ENV = 'test'
+
+// Load test environment variables
+dotenv.config({ path: path.join(__dirname, '..', '.env.test') })
 
 // Fill in this config with all the configurations
 // needed for testing the application
@@ -31,7 +40,22 @@ async function build (t) {
   return app
 }
 
+// Setup test database for a test suite
+async function setupTestDatabase () {
+  const migrator = new TestMigrator()
+  await migrator.resetDatabase()
+  return migrator
+}
+
+// Clean up test database after test suite
+async function teardownTestDatabase () {
+  const migrator = new TestMigrator()
+  await migrator.dropTestDatabase()
+}
+
 module.exports = {
   config,
-  build
+  build,
+  setupTestDatabase,
+  teardownTestDatabase
 }

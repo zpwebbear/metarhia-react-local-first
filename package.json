@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "install:all": "npm install",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
+    "dev": "concurrently  \"npm run docker:dev -w backend\" \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "migrate": "npm run migrate -w backend"
   },
   "workspaces": [
     "packages/frontend",
