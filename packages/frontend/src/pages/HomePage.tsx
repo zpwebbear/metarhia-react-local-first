@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { MonthlySummary } from '@/components/home/MonthlySummary'
+import { MonthlySummaryWidget } from '@/widgets/home/MonthlySummaryWidget'
 import { AddExpenseButton } from '@/components/home/AddExpenseButton'
 import { ExpenseList } from '@/components/home/ExpenseList'
 
@@ -12,9 +12,6 @@ const mockExpenses = [
   { id: 4, name: 'Netflix subscription', amount: 15.99, category: 'Entertainment', date: '2025-08-02' },
   { id: 5, name: 'Gas station', amount: 35.20, category: 'Transport', date: '2025-08-01' },
 ]
-
-const currentMonthTotal = 358.42
-const currentMonth = 'August 2025'
 
 export function HomePage() {
   const [expenses] = useState(mockExpenses)
@@ -33,7 +30,7 @@ export function HomePage() {
     <AppLayout>
       <div className="space-y-6">
         {/* Monthly Summary */}
-        <MonthlySummary month={currentMonth} total={currentMonthTotal} />
+        <MonthlySummaryWidget />
 
         {/* Add Expense Button */}
         <AddExpenseButton onAdd={handleAddExpense} />
