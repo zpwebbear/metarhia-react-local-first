@@ -157,7 +157,7 @@ test('Categories E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
 
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Category not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('GET /categories/:id - should return 400 for invalid ID format', async () => {
@@ -202,7 +202,7 @@ test('Categories E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
 
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Category not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('PATCH /categories/:id - should return 400 for invalid ID format', async () => {
@@ -309,7 +309,7 @@ test('Categories E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
 
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Category not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('DELETE /categories/:id - should return 400 for invalid ID format', async () => {

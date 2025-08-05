@@ -181,7 +181,7 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
     
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Expense not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('GET /expenses/:id - should return 400 for invalid ID format', async () => {
@@ -250,7 +250,7 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
     
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Expense not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('PATCH /expenses/:id - should return 400 for invalid ID format', async () => {
@@ -299,7 +299,7 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(res.statusCode, 404)
     
     const error = JSON.parse(res.payload)
-    assert.strictEqual(error.error, 'Expense not found')
+    assert.strictEqual(error.error, 'Not Found')
   })
 
   await t.test('DELETE /expenses/:id - should return 400 for invalid ID format', async () => {
