@@ -12,7 +12,8 @@ const schema = {
     DB_PORT: { type: 'number', default: 5432 },
     DB_USER: { type: 'string', default: 'user' },
     DB_PASSWORD: { type: 'string', default: 'password' },
-    DB_NAME: { type: 'string', default: 'mydb' }
+    DB_NAME: { type: 'string', default: 'mydb' },
+    APP_HOST: { type: 'string', default: 'http://localhost' },
   }
 }
 
