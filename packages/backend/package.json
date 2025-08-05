@@ -12,6 +12,7 @@
     "test:expenses": "NODE_ENV=test node --test test/routes/expenses.test.js -l debug",
     "test:expenses:watch": "NODE_ENV=test node --test --watch test/routes/expenses.test.js",
     "test:categories": "NODE_ENV=test node --test test/routes/categories.test.js -l debug",
+    "test:statistics": "NODE_ENV=test node --test test/routes/statistics.test.js -l debug",
     "test:setup": "NODE_ENV=test node -e \"require('./test/test-migrator').TestMigrator.prototype.resetDatabase.call(new (require('./test/test-migrator')).TestMigrator())\"",
     "test:teardown": "NODE_ENV=test node -e \"require('./test/test-migrator').TestMigrator.prototype.dropTestDatabase.call(new (require('./test/test-migrator')).TestMigrator())\"",
     "start": "fastify start -l info app.js",
