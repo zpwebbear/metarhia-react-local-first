@@ -5,7 +5,44 @@ const dotenv = require('dotenv')
 // Load environment variables from .env file
 dotenv.config()
 
+async function createDatabaseIfNotExists() {
+  const adminClient = new pg.Client({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: 'postgres', // Connect to default postgres database
+    user: process.env.DB_USER || 'example',
+    password: process.env.DB_PASSWORD || 'example',
+  });
+
+  try {
+    await adminClient.connect();
+    const dbName = process.env.DB_NAME || 'example';
+    
+    // Check if database exists
+    const result = await adminClient.query(
+      'SELECT 1 FROM pg_database WHERE datname = $1',
+      [dbName]
+    );
+
+    if (result.rows.length === 0) {
+      // Database doesn't exist, create it
+      await adminClient.query(`CREATE DATABASE "${dbName}"`);
+      console.log(`Database "${dbName}" created successfully.`);
+    } else {
+      console.log(`Database "${dbName}" already exists.`);
+    }
+  } catch (err) {
+    console.error('Error creating database:', err);
+    throw err;
+  } finally {
+    await adminClient.end();
+  }
+}
+
 async function migrate() {
+  // First, ensure the database exists
+  await createDatabaseIfNotExists();
+
   const client = new pg.Client({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
