@@ -5,15 +5,22 @@ const Postgrator = require('postgrator').default
 const path = require('node:path')
 const dotenv = require('dotenv')
 
-// Load test environment variables
-if (process.env.NODE_ENV === 'test') {
-  dotenv.config({ path: path.join(__dirname, '..', '.env.test') })
-} else {
-  dotenv.config()
-}
+// Load test environment variables - ONLY for test environment
+const envPath = path.join(__dirname, '..', '.env.test')
+console.log(`Loading environment variables from ${envPath}`)
+dotenv.config({ path: envPath, debug: true, override: true })
+// DO NOT load regular .env file for test migrator to prevent accidents
 
 class TestMigrator {
   constructor() {
+    // Ensure we're running in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      throw new Error(
+        'TestMigrator should only be used in test environment. ' +
+        'Please set NODE_ENV=test before running tests.'
+      )
+    }
+
     this.config = {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5432,
