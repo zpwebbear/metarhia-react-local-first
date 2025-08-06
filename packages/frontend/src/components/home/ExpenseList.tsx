@@ -5,10 +5,17 @@ import type { Expense } from '@/types'
 
 interface ExpenseListProps {
   expenses: Expense[]
-  onViewAll: () => void
+  onViewAll?: () => void
+  showViewAllButton?: boolean
+  title?: string
 }
 
-export function ExpenseList({ expenses, onViewAll }: ExpenseListProps) {
+export function ExpenseList({ 
+  expenses, 
+  onViewAll, 
+  showViewAllButton = true,
+  title = "Recent Expenses"
+}: ExpenseListProps) {
   const getCategoryColor = (category: string) => {
     const colors = {
       'Food & Drink': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -22,10 +29,12 @@ export function ExpenseList({ expenses, onViewAll }: ExpenseListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Recent Expenses</h2>
-        <Button variant="ghost" size="sm" className="text-primary" onClick={onViewAll}>
-          View All
-        </Button>
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {showViewAllButton && onViewAll && (
+          <Button variant="ghost" size="sm" className="text-primary" onClick={onViewAll}>
+            View All
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -39,9 +48,9 @@ export function ExpenseList({ expenses, onViewAll }: ExpenseListProps) {
                       <h3 className="font-medium text-sm">{expense.name}</h3>
                       <Badge
                         variant="secondary"
-                        className={`text-xs ${getCategoryColor(expense.category)}`}
+                        className={`text-xs ${getCategoryColor(expense.category.name)}`}
                       >
-                        {expense.category}
+                        {expense.category.name}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">

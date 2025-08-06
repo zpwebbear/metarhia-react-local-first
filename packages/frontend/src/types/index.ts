@@ -22,8 +22,8 @@ export interface Category {
 
 export interface ExpenseFilters {
   categoryId?: number
-  startDate?: string
-  endDate?: string
+  from?: string  // YYYY-MM-DD format
+  to?: string    // YYYY-MM-DD format
   search?: string
 }
 
