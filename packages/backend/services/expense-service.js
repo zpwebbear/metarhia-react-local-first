@@ -44,25 +44,44 @@ class ExpenseService {
       let paramIndex = 1
 
       if (from) {
-        conditions.push(`date >= $${paramIndex}`)
+        conditions.push(`e.date >= $${paramIndex}`)
         params.push(from)
         paramIndex++
       }
 
       if (to) {
-        conditions.push(`date <= $${paramIndex}`)
+        conditions.push(`e.date <= $${paramIndex}`)
         params.push(to)
         paramIndex++
       }
 
       if (categoryId) {
-        conditions.push(`categoryid = $${paramIndex}`)
+        conditions.push(`e.categoryid = $${paramIndex}`)
         params.push(categoryId)
         paramIndex++
       }
 
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-      const query = `SELECT * FROM expenses ${whereClause} ORDER BY date DESC`
+      const query = `
+        SELECT 
+          e.id,
+          e.name,
+          e.amount,
+          e.date,
+          e.description,
+          e.created_at,
+          e.updated_at,
+          json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'created_at', c.created_at,
+            'updated_at', c.updated_at
+          ) as category
+        FROM expenses e
+        JOIN categories c ON e.categoryid = c.id
+        ${whereClause} 
+        ORDER BY e.date DESC
+      `
 
       const { rows } = await client.query(query, params)
       return rows
@@ -86,7 +105,22 @@ class ExpenseService {
       } = expenseData
 
       const { rows } = await client.query(
-        'INSERT INTO expenses (name, amount, date, categoryId, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        `INSERT INTO expenses (name, amount, date, categoryId, description) 
+         VALUES ($1, $2, $3, $4, $5) 
+         RETURNING 
+           id,
+           name,
+           amount,
+           date,
+           description,
+           created_at,
+           updated_at,
+           (SELECT json_build_object(
+             'id', c.id,
+             'name', c.name,
+             'created_at', c.created_at,
+             'updated_at', c.updated_at
+           ) FROM categories c WHERE c.id = categoryId) as category`,
         [name, amount, date, categoryId, description]
       )
 
@@ -103,7 +137,23 @@ class ExpenseService {
     const client = await this.fastify.pg.connect()
     try {
       const { rows } = await client.query(
-        'SELECT * FROM expenses WHERE id = $1',
+        `SELECT 
+          e.id,
+          e.name,
+          e.amount,
+          e.date,
+          e.description,
+          e.created_at,
+          e.updated_at,
+          json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'created_at', c.created_at,
+            'updated_at', c.updated_at
+          ) as category
+        FROM expenses e
+        JOIN categories c ON e.categoryid = c.id
+        WHERE e.id = $1`,
         [id]
       )
 
@@ -119,9 +169,9 @@ class ExpenseService {
   async updateExpense(id, updates) {
     const client = await this.fastify.pg.connect()
     try {
-      // Check if expense exists
-      const existing = await this.getExpenseById(id)
-      if (!existing) {
+      // Check if expense exists first (using basic query for existence check)
+      const existingCheck = await client.query('SELECT id FROM expenses WHERE id = $1', [id])
+      if (existingCheck.rows.length === 0) {
         return null
       }
 
@@ -141,7 +191,24 @@ class ExpenseService {
       // Add updated_at timestamp
       fields.push(`updated_at = NOW()`)
 
-      const updateQuery = `UPDATE expenses SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`
+      const updateQuery = `
+        UPDATE expenses 
+        SET ${fields.join(', ')} 
+        WHERE id = $${paramIndex} 
+        RETURNING 
+          id,
+          name,
+          amount,
+          date,
+          description,
+          created_at,
+          updated_at,
+          (SELECT json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'created_at', c.created_at,
+            'updated_at', c.updated_at
+          ) FROM categories c WHERE c.id = expenses.categoryid) as category`
       values.push(id)
 
       const { rows } = await client.query(updateQuery, values)

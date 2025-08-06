@@ -70,7 +70,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.ok(expense.id)
     assert.strictEqual(expense.name, validExpense.name)
     assert.strictEqual(expense.amount, validExpense.amount)
-    assert.strictEqual(expense.categoryid, validExpense.categoryId)
+    assert.ok(expense.category)
+    assert.strictEqual(expense.category.id, validExpense.categoryId)
+    assert.ok(expense.category.name)
     assert.strictEqual(expense.description, validExpense.description)
     assert.ok(expense.date)
     assert.ok(expense.created_at)
@@ -93,7 +95,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.ok(expense.id)
     assert.strictEqual(expense.name, validExpenseWithoutOptional.name)
     assert.strictEqual(expense.amount, validExpenseWithoutOptional.amount)
-    assert.strictEqual(expense.categoryid, validExpenseWithoutOptional.categoryId)
+    assert.ok(expense.category)
+    assert.strictEqual(expense.category.id, validExpenseWithoutOptional.categoryId)
+    assert.ok(expense.category.name)
     assert.strictEqual(expense.description, '') // should default to empty string
     assert.ok(expense.date) // should default to current date
     
@@ -168,7 +172,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(expense.id, t.expenseId)
     assert.strictEqual(expense.name, validExpense.name)
     assert.strictEqual(expense.amount, validExpense.amount)
-    assert.strictEqual(expense.categoryid, validExpense.categoryId)
+    assert.ok(expense.category)
+    assert.strictEqual(expense.category.id, validExpense.categoryId)
+    assert.ok(expense.category.name)
     assert.strictEqual(expense.description, validExpense.description)
   })
 
@@ -214,7 +220,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(expense.id, t.expenseId)
     assert.strictEqual(expense.name, updateData.name)
     assert.strictEqual(expense.amount, updateData.amount)
-    assert.strictEqual(expense.categoryid, updateData.categoryId)
+    assert.ok(expense.category)
+    assert.strictEqual(expense.category.id, updateData.categoryId)
+    assert.ok(expense.category.name)
     assert.strictEqual(expense.description, updateData.description)
     assert.strictEqual(expense.date, updateData.date)
   })
@@ -237,7 +245,9 @@ test('Expenses E2E Tests', async (t) => {
     assert.strictEqual(expense.name, updateData.name)
     // Other fields should remain unchanged
     assert.strictEqual(expense.amount, validExpenseWithoutOptional.amount)
-    assert.strictEqual(expense.categoryid, validExpenseWithoutOptional.categoryId)
+    assert.ok(expense.category)
+    assert.strictEqual(expense.category.id, validExpenseWithoutOptional.categoryId)
+    assert.ok(expense.category.name)
   })
 
   await t.test('PATCH /expenses/:id - should return 404 for non-existent expense', async () => {
@@ -379,7 +389,11 @@ test('Expenses E2E Tests', async (t) => {
     assert.ok(typeof expense.name === 'string')
     assert.ok(typeof expense.amount === 'number')
     assert.ok(typeof expense.date === 'string')
-    assert.ok(typeof expense.categoryid === 'number')
+    assert.ok(typeof expense.category === 'object')
+    assert.ok(typeof expense.category.id === 'number')
+    assert.ok(typeof expense.category.name === 'string')
+    assert.ok(typeof expense.category.created_at === 'string')
+    assert.ok(typeof expense.category.updated_at === 'string')
     assert.ok(typeof expense.description === 'string')
     assert.ok(typeof expense.created_at === 'string')
     assert.ok(typeof expense.updated_at === 'string')
@@ -388,6 +402,8 @@ test('Expenses E2E Tests', async (t) => {
     assert.ok(!isNaN(Date.parse(expense.date)))
     assert.ok(!isNaN(Date.parse(expense.created_at)))
     assert.ok(!isNaN(Date.parse(expense.updated_at)))
+    assert.ok(!isNaN(Date.parse(expense.category.created_at)))
+    assert.ok(!isNaN(Date.parse(expense.category.updated_at)))
     
     // Clean up
     await app.inject({
@@ -498,7 +514,8 @@ test('Expenses E2E Tests', async (t) => {
     
     // All returned expenses should belong to Food category
     expenses.forEach(expense => {
-      assert.strictEqual(expense.categoryid, testData.categories[0].id)
+      assert.ok(expense.category)
+      assert.strictEqual(expense.category.id, testData.categories[0].id)
     })
     
     // Should include at least 2 food expenses (groceries, restaurant)
@@ -523,7 +540,8 @@ test('Expenses E2E Tests', async (t) => {
     
     // All returned expenses should be Food category in January
     expenses.forEach(expense => {
-      assert.strictEqual(expense.categoryid, testData.categories[0].id)
+      assert.ok(expense.category)
+      assert.strictEqual(expense.category.id, testData.categories[0].id)
       const date = new Date(expense.date)
       assert.ok(date >= new Date('2024-01-01') && date <= new Date('2024-01-31'))
     })

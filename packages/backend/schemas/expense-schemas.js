@@ -8,7 +8,15 @@ const expenseObject = {
     name: { type: 'string' },
     amount: { type: 'number' },
     date: { type: 'string', format: 'date' },
-    categoryid: { type: 'integer' },
+    category: {
+      type: 'object',
+      properties: {
+        id: { type: 'integer' },
+        name: { type: 'string' },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' }
+      }
+    },
     description: { type: 'string' },
     created_at: { type: 'string', format: 'date-time' },
     updated_at: { type: 'string', format: 'date-time' }
