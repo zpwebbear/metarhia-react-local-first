@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 function Dialog({
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+}: React.ComponentProps<typeof DialogPrimitive.Root> & { id: string }) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
