@@ -27,14 +27,44 @@ class ExpenseService {
   }
 
   /**
-   * Get all expenses ordered by date (newest first)
+   * Get all expenses ordered by date (newest first) with optional filtering
+   * @param {Object} filters - Filter options
+   * @param {string} filters.from - Start date (YYYY-MM-DD)
+   * @param {string} filters.to - End date (YYYY-MM-DD)
+   * @param {number} filters.categoryId - Category ID to filter by
    */
-  async getAllExpenses() {
+  async getAllExpenses(filters = {}) {
     const client = await this.fastify.pg.connect()
     try {
-      const { rows } = await client.query(
-        'SELECT * FROM expenses ORDER BY date DESC'
-      )
+      const { from, to, categoryId } = filters
+      
+      // Build WHERE clause based on filters
+      const conditions = []
+      const params = []
+      let paramIndex = 1
+
+      if (from) {
+        conditions.push(`date >= $${paramIndex}`)
+        params.push(from)
+        paramIndex++
+      }
+
+      if (to) {
+        conditions.push(`date <= $${paramIndex}`)
+        params.push(to)
+        paramIndex++
+      }
+
+      if (categoryId) {
+        conditions.push(`categoryid = $${paramIndex}`)
+        params.push(categoryId)
+        paramIndex++
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+      const query = `SELECT * FROM expenses ${whereClause} ORDER BY date DESC`
+
+      const { rows } = await client.query(query, params)
       return rows
     } finally {
       client.release()
@@ -136,6 +166,69 @@ class ExpenseService {
     } finally {
       client.release()
     }
+  }
+
+  /**
+   * Validate query parameters for filtering expenses
+   * @param {Object} query - Query parameters
+   * @returns {Object} Validation result
+   */
+  async validateQuery(query) {
+    const { from, to, categoryId } = query
+
+    // Validate date format if provided
+    if (from && !this.isValidDate(from)) {
+      return { valid: false, error: 'Invalid "from" date format. Use YYYY-MM-DD.' }
+    }
+
+    if (to && !this.isValidDate(to)) {
+      return { valid: false, error: 'Invalid "to" date format. Use YYYY-MM-DD.' }
+    }
+
+    // Validate date range
+    if (from && to && new Date(from) > new Date(to)) {
+      return { valid: false, error: '"from" date cannot be later than "to" date.' }
+    }
+
+    // Validate categoryId if provided
+    if (categoryId) {
+      const categoryIdNumber = parseInt(categoryId, 10)
+      if (isNaN(categoryIdNumber) || categoryIdNumber <= 0) {
+        return { valid: false, error: 'Invalid categoryId. Must be a positive integer.' }
+      }
+
+      // Check if category exists
+      const client = await this.fastify.pg.connect()
+      try {
+        const { rows } = await client.query(
+          'SELECT 1 FROM categories WHERE id = $1',
+          [categoryIdNumber]
+        )
+
+        if (rows.length === 0) {
+          return { valid: false, error: 'Category with given ID does not exist.' }
+        }
+      } finally {
+        client.release()
+      }
+    }
+
+    return { valid: true }
+  }
+
+  /**
+   * Check if a string is a valid date in YYYY-MM-DD format
+   * @param {string} dateString - Date string to validate
+   * @returns {boolean} True if valid date
+   */
+  isValidDate(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/
+    if (!regex.test(dateString)) {
+      return false
+    }
+    
+    const date = new Date(dateString)
+    return date instanceof Date && !isNaN(date.getTime()) && dateString === date.toISOString().split('T')[0]
   }
 }
 

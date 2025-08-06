@@ -395,4 +395,253 @@ test('Expenses E2E Tests', async (t) => {
       url: `/expenses/${expense.id}`
     })
   })
+
+  // =====================================
+  // Filtering Tests
+  // =====================================
+
+  // Create test expenses for filtering tests
+  const filterTestExpenses = []
+  
+  // Create expenses for Food category
+  const foodExpense1 = await app.inject({
+    method: 'POST',
+    url: '/expenses',
+    payload: {
+      name: 'Grocery Shopping',
+      amount: 150.00,
+      date: '2024-01-15',
+      categoryId: testData.categories[0].id, // Food category
+      description: 'Weekly groceries'
+    }
+  })
+  filterTestExpenses.push(JSON.parse(foodExpense1.payload))
+
+  const foodExpense2 = await app.inject({
+    method: 'POST',
+    url: '/expenses',
+    payload: {
+      name: 'Restaurant',
+      amount: 75.50,
+      date: '2024-01-20',
+      categoryId: testData.categories[0].id, // Food category
+      description: 'Dinner with friends'
+    }
+  })
+  filterTestExpenses.push(JSON.parse(foodExpense2.payload))
+
+  // Create expense for Transport category
+  const transportExpense = await app.inject({
+    method: 'POST',
+    url: '/expenses',
+    payload: {
+      name: 'Gas',
+      amount: 60.00,
+      date: '2024-01-18',
+      categoryId: testData.categories[1].id, // Transport category
+      description: 'Car fuel'
+    }
+  })
+  filterTestExpenses.push(JSON.parse(transportExpense.payload))
+
+  // Create expense for Entertainment category
+  const entertainmentExpense = await app.inject({
+    method: 'POST',
+    url: '/expenses',
+    payload: {
+      name: 'Movie tickets',
+      amount: 25.00,
+      date: '2024-02-05',
+      categoryId: testData.categories[2].id, // Entertainment category
+      description: 'Cinema'
+    }
+  })
+  filterTestExpenses.push(JSON.parse(entertainmentExpense.payload))
+
+  await t.test('GET /expenses - should filter by date range', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?from=2024-01-01&to=2024-01-31'
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // Should only include January expenses (excluding February entertainment expense)
+    const januaryExpenses = expenses.filter(expense => {
+      const date = new Date(expense.date)
+      return date >= new Date('2024-01-01') && date <= new Date('2024-01-31')
+    })
+    
+    // All returned expenses should be within the date range
+    assert.strictEqual(expenses.length, januaryExpenses.length)
+    
+    // Should include at least 3 expenses (groceries, restaurant, gas)
+    assert.ok(expenses.length >= 3)
+    
+    // Should be ordered by date descending
+    for (let i = 0; i < expenses.length - 1; i++) {
+      const currentDate = new Date(expenses[i].date)
+      const nextDate = new Date(expenses[i + 1].date)
+      assert.ok(currentDate >= nextDate, 'Expenses should be ordered by date DESC')
+    }
+  })
+
+  await t.test('GET /expenses - should filter by category', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/expenses?categoryId=${testData.categories[0].id}` // Food category
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // All returned expenses should belong to Food category
+    expenses.forEach(expense => {
+      assert.strictEqual(expense.categoryid, testData.categories[0].id)
+    })
+    
+    // Should include at least 2 food expenses (groceries, restaurant)
+    assert.ok(expenses.length >= 2)
+    
+    // Should be ordered by date descending
+    for (let i = 0; i < expenses.length - 1; i++) {
+      const currentDate = new Date(expenses[i].date)
+      const nextDate = new Date(expenses[i + 1].date)
+      assert.ok(currentDate >= nextDate, 'Expenses should be ordered by date DESC')
+    }
+  })
+
+  await t.test('GET /expenses - should filter by date range and category', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/expenses?from=2024-01-01&to=2024-01-31&categoryId=${testData.categories[0].id}`
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // All returned expenses should be Food category in January
+    expenses.forEach(expense => {
+      assert.strictEqual(expense.categoryid, testData.categories[0].id)
+      const date = new Date(expense.date)
+      assert.ok(date >= new Date('2024-01-01') && date <= new Date('2024-01-31'))
+    })
+    
+    // Should include 2 food expenses from January
+    assert.strictEqual(expenses.length, 2)
+    
+    // Should be ordered by date descending
+    for (let i = 0; i < expenses.length - 1; i++) {
+      const currentDate = new Date(expenses[i].date)
+      const nextDate = new Date(expenses[i + 1].date)
+      assert.ok(currentDate >= nextDate, 'Expenses should be ordered by date DESC')
+    }
+  })
+
+  await t.test('GET /expenses - should return empty for date range with no expenses', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?from=2026-01-01&to=2026-01-31'
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // Should return empty array for future dates
+    assert.strictEqual(expenses.length, 0)
+  })
+
+  await t.test('GET /expenses - should return empty for non-existent category', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?categoryId=99999'
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    const error = JSON.parse(res.payload)
+  })
+
+  await t.test('GET /expenses - should return 400 for invalid date format', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?from=invalid-date'
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    const error = JSON.parse(res.payload)
+  })
+
+  await t.test('GET /expenses - should return 400 for invalid date range', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?from=2024-12-31&to=2024-01-01'
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    const error = JSON.parse(res.payload)
+  })
+
+  await t.test('GET /expenses - should return 400 for invalid categoryId', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?categoryId=invalid'
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    const error = JSON.parse(res.payload)
+  })
+
+  await t.test('GET /expenses - should handle "to" date filter only', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?to=2024-01-31'
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // All returned expenses should be before or on 2024-01-31
+    expenses.forEach(expense => {
+      const date = new Date(expense.date)
+      assert.ok(date <= new Date('2024-01-31'))
+    })
+  })
+
+  await t.test('GET /expenses - should handle "from" date filter only', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/expenses?from=2024-02-01'
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // All returned expenses should be on or after 2024-02-01
+    expenses.forEach(expense => {
+      const date = new Date(expense.date)
+      assert.ok(date >= new Date('2024-02-01'))
+    })
+  })
+
+  await t.test('GET /expenses - should handle multiple filters with empty result', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: `/expenses?from=2024-03-01&to=2024-03-31&categoryId=${testData.categories[0].id}`
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    const expenses = JSON.parse(res.payload)
+    
+    // Should return empty array since we have no March expenses
+    assert.strictEqual(expenses.length, 0)
+  })
+
+  // Clean up filter test expenses
+  for (const expense of filterTestExpenses) {
+    await app.inject({
+      method: 'DELETE',
+      url: `/expenses/${expense.id}`
+    })
+  }
 })

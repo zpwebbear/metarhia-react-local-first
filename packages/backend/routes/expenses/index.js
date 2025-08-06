@@ -14,7 +14,28 @@ module.exports = async function (fastify, opts) {
     schema: schemas.getAllExpenses
   }, async (request, reply) => {
     try {
-      const expenses = await expenseService.getAllExpenses()
+      // Validate query parameters
+      const isValid = await expenseService.validateQuery(request.query)
+      if (!isValid.valid) {
+        return reply.badRequest(isValid.error)
+      }
+
+      // Parse and prepare filters
+      const filters = {}
+      
+      if (request.query.from) {
+        filters.from = request.query.from
+      }
+      
+      if (request.query.to) {
+        filters.to = request.query.to
+      }
+      
+      if (request.query.categoryId) {
+        filters.categoryId = parseInt(request.query.categoryId, 10)
+      }
+
+      const expenses = await expenseService.getAllExpenses(filters)
       return expenses
     } catch (error) {
       request.log.error({ error, context: 'getAllExpenses' }, 'Route error occurred')

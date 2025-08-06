@@ -12,7 +12,7 @@ const statisticsObject = {
         properties: {
           categoryId: { type: 'integer' },
           categoryName: { type: 'string' },
-          amount: { type: 'number' }
+          amount: { type: 'number' },
         }
       }
     }

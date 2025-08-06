@@ -56,14 +56,39 @@ const updateExpenseBody = {
   }
 }
 
+// Query parameters schema for filtering expenses
+const expenseQuerystring = {
+  type: 'object',
+  properties: {
+    from: { 
+      type: 'string', 
+      format: 'date',
+      description: 'Start date for filtering expenses (YYYY-MM-DD)'
+    },
+    to: { 
+      type: 'string', 
+      format: 'date',
+      description: 'End date for filtering expenses (YYYY-MM-DD)'
+    },
+    categoryId: { 
+      type: 'integer',
+      minimum: 1,
+      description: 'Category ID to filter expenses'
+    }
+  },
+  additionalProperties: false
+}
+
 module.exports = {
   // Route schemas
   getAllExpenses: {
+    querystring: expenseQuerystring,
     response: {
       200: {
         type: 'array',
         items: expenseObject
-      }
+      },
+      400: errorResponse
     }
   },
 
