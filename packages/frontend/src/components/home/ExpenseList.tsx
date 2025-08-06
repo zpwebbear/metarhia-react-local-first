@@ -1,20 +1,13 @@
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Expense } from '@/types'
 
 interface ExpenseListProps {
   expenses: Expense[]
-  onViewAll?: () => void
-  showViewAllButton?: boolean
-  title?: string
 }
 
-export function ExpenseList({ 
-  expenses, 
-  onViewAll, 
-  showViewAllButton = true,
-  title = "Recent Expenses"
+export function ExpenseList({
+  expenses,
 }: ExpenseListProps) {
   const getCategoryColor = (category: string) => {
     const colors = {
@@ -27,52 +20,42 @@ export function ExpenseList({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        {showViewAllButton && onViewAll && (
-          <Button variant="ghost" size="sm" className="text-primary" onClick={onViewAll}>
-            View All
-          </Button>
-        )}
-      </div>
 
-      <div className="space-y-3">
-        {expenses.map((expense, index) => (
-          <div key={expense.id}>
-            <Card className="p-0">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-sm">{expense.name}</h3>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${getCategoryColor(expense.category.name)}`}
-                      >
-                        {expense.category.name}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(expense.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </p>
+    <div className="space-y-3">
+      {expenses.map((expense, index) => (
+        <div key={expense.id}>
+          <Card className="p-0">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-sm">{expense.name}</h3>
+                    <Badge
+                      variant="secondary"
+                      className={`text-xs ${getCategoryColor(expense.category.name)}`}
+                    >
+                      {expense.category.name}
+                    </Badge>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">
-                      ${expense.amount.toFixed(2)}
-                    </p>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(expense.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-            {index < expenses.length - 1 && <div className="h-px" />}
-          </div>
-        ))}
-      </div>
+                <div className="text-right">
+                  <p className="font-semibold text-sm">
+                    ${expense.amount.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {index < expenses.length - 1 && <div className="h-px" />}
+        </div>
+      ))}
     </div>
   )
 }

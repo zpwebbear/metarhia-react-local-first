@@ -10,7 +10,7 @@ export function MonthlySummaryExpensesWidget() {
   const currentMonthLabel = getCurrentMonthLabel()
 
   const {
-    data: expenses,
+    data: expenses = [],
     isLoading,
     isError,
     error
@@ -70,26 +70,22 @@ export function MonthlySummaryExpensesWidget() {
     )
   }
 
-  const allExpenses = expenses || []
-
-  return (
+    return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium text-muted-foreground">
-          {currentMonthLabel} Expenses
+          Expenses ({expenses.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        {allExpenses.length === 0 ? (
+        {expenses.length === 0 ? (
           <div className="text-center text-muted-foreground py-4">
             <p className="text-sm">No expenses this month</p>
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto pr-1">
             <ExpenseList 
-              expenses={allExpenses}
-              showViewAllButton={false}
-              title="All Expenses"
+              expenses={expenses}
             />
           </div>
         )}
