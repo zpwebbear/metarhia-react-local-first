@@ -1,5 +1,4 @@
 const pg = require('pg')
-const Postgrator = require('postgrator').default
 const path = require('node:path')
 const dotenv = require('dotenv')
 // Load environment variables from .env file
@@ -26,7 +25,7 @@ async function createDatabaseIfNotExists() {
 
     if (result.rows.length === 0) {
       // Database doesn't exist, create it
-      await adminClient.query(`CREATE DATABASE "${dbName}"`);
+      await adminClient.query(`CREATE DATABASE "${dbName}" IF NOT EXISTS`);
       console.log(`Database "${dbName}" created successfully.`);
     } else {
       console.log(`Database "${dbName}" already exists.`);
@@ -53,6 +52,7 @@ async function migrate() {
 
   try {
     await client.connect();
+    const Postgrator = (await import('postgrator')).default;
     const postgrator = new Postgrator({
       migrationPattern: path.join(__dirname, '/migrations/*'),
       driver: 'pg',
