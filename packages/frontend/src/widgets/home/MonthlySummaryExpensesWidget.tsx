@@ -83,11 +83,9 @@ export function MonthlySummaryExpensesWidget() {
             <p className="text-sm">No expenses this month</p>
           </div>
         ) : (
-          <div className="max-h-96 overflow-y-auto pr-1">
             <ExpenseList 
               expenses={expenses}
             />
-          </div>
         )}
       </CardContent>
     </Card>
