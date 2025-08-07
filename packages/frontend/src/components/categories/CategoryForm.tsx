@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { createPortal } from 'react-dom'
@@ -35,7 +34,6 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProps) {
-  const [isOpen, setIsOpen] = useState(true)
   const queryClient = useQueryClient()
   const isEditing = !!category
 
@@ -89,13 +87,12 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
   }
 
   const handleClose = () => {
-    setIsOpen(false)
     form.reset()
     onCancel()
   }
 
   return createPortal(
-    <Dialog open={isOpen} onOpenChange={setIsOpen} id={`category-form-${isEditing ? 'edit' : 'create'}`}>
+    <Dialog open={true} onOpenChange={(open) => !open && handleClose()} id={`category-form-${isEditing ? 'edit' : 'create'}`}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
