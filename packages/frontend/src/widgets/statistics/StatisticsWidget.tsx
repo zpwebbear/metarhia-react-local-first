@@ -1,43 +1,28 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { StatisticsCharts } from '@/components/statistics/StatisticsCharts'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Skeleton } from '@/components/ui/skeleton'
-import { fetchStatistics } from '@/services/statistics'
-import { fetchCategories } from '@/services/categories'
-import { StatisticsCharts } from '@/components/statistics/StatisticsCharts'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { StatisticsParams } from '@/services/statistics'
+import { useApplicationStore } from '@/store/use-application-store'
 import { CalendarIcon, FilterIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 export function StatisticsWidget() {
-  const [filters, setFilters] = useState<StatisticsParams>({})
+  const filters = useApplicationStore(state => state.filters);
+  const setFilters = useApplicationStore(state => state.setFilters);
+  const resetFilters = useApplicationStore(state => state.resetFilters);
+  const categories = useApplicationStore(state => state.categories);
+  const getStatistics = useApplicationStore(state => state.getStatistics);
   const [tempFilters, setTempFilters] = useState<StatisticsParams>({})
+
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  // Fetch categories for the filter dropdown
-  const {
-    data: categories = [],
-    isLoading: categoriesLoading
-  } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-    staleTime: 1000 * 60 * 10, // 10 minutes - categories don't change often
-  })
-
-  // Fetch statistics with current filters
-  const {
-    data: statistics,
-    isLoading: statisticsLoading,
-    isError,
-    error
-  } = useQuery({
-    queryKey: ['statistics', 'filtered', filters],
-    queryFn: () => fetchStatistics(filters),
-    staleTime: 1000 * 60 * 2, // 2 minutes
-  })
+  const statistics = useMemo(() => {
+    return getStatistics(filters);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, getStatistics, categories]);
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
@@ -47,18 +32,18 @@ export function StatisticsWidget() {
   const handleClearFilters = () => {
     const emptyFilters = {}
     setTempFilters(emptyFilters)
-    setFilters(emptyFilters)
+    resetFilters()
     setFiltersOpen(false)
   }
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== undefined && value !== '')
-  const hasActiveFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== '').length
+  const hasActiveFilters = Object.values(filters).some(value => value !== null && value !== '')
+  const hasActiveFiltersCount = Object.values(filters).filter(v => v !== null && v !== '').length
 
   const renderFiltersPopover = () => (
     <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           className="gap-2"
         >
@@ -76,9 +61,9 @@ export function StatisticsWidget() {
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-sm">Filter Statistics</h4>
             {hasActiveFilters && (
-              <Button 
-                onClick={handleClearFilters} 
-                variant="ghost" 
+              <Button
+                onClick={handleClearFilters}
+                variant="ghost"
                 size="sm"
                 className="text-xs h-6 px-2"
               >
@@ -128,10 +113,10 @@ export function StatisticsWidget() {
             </label>
             <Select
               value={tempFilters.categoryId?.toString() || 'all'}
-              onValueChange={(value) => 
-                setTempFilters(prev => ({ 
-                  ...prev, 
-                  categoryId: value === 'all' ? undefined : parseInt(value, 10)
+              onValueChange={(value) =>
+                setTempFilters(prev => ({
+                  ...prev,
+                  categoryId: value === 'all' ? undefined : value
                 }))
               }
             >
@@ -140,14 +125,12 @@ export function StatisticsWidget() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All categories</SelectItem>
-                {categoriesLoading ? (
-                  <SelectItem value="loading" disabled>Loading...</SelectItem>
-                ) : (
+                {
                   categories.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}
                     </SelectItem>
-                  ))
+                  )
                 )}
               </SelectContent>
             </Select>
@@ -165,45 +148,6 @@ export function StatisticsWidget() {
   )
 
   const renderStatisticsContent = () => {
-    if (statisticsLoading) {
-      return (
-        <div className="space-y-6">
-          {/* Total amount skeleton */}
-          <div className="text-center">
-            <Skeleton className="h-8 w-32 mx-auto mb-2" />
-            <Skeleton className="h-4 w-24 mx-auto" />
-          </div>
-          
-          {/* Charts skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    if (isError) {
-      return (
-        <div className="text-center py-8">
-          <div className="text-sm text-destructive">
-            Failed to load statistics
-            {error instanceof Error && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {error.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-
     if (!statistics || statistics.total === 0) {
       return (
         <div className="text-center text-muted-foreground py-8">

@@ -1,76 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchExpenses } from '@/services/expenses'
-import { getCurrentMonthDateRange, getCurrentMonthLabel } from '@/utils/date'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ExpenseList } from '@/components/home/ExpenseList'
+import { ExpenseList } from '@/components/home/ExpenseList';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useApplicationStore } from '@/store/use-application-store';
 
 export function MonthlySummaryExpensesWidget() {
-  const currentMonthRange = getCurrentMonthDateRange()
-  const currentMonthLabel = getCurrentMonthLabel()
 
-  const {
-    data: expenses = [],
-    isLoading,
-    isError,
-    error
-  } = useQuery({
-    queryKey: ['expenses', 'current-month', currentMonthRange.from, currentMonthRange.to],
-    queryFn: () => fetchExpenses({
-      from: currentMonthRange.from,
-      to: currentMonthRange.to
-    }),
-    staleTime: 1000 * 60 * 5, // 5 minutes - data doesn't change frequently
-  })
+  const expenses = useApplicationStore((state) => state.currentMonthExpenses);
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium text-muted-foreground">
-            {currentMonthLabel} Expenses
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-                <Skeleton className="h-4 w-12" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (isError) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium text-muted-foreground">
-            {currentMonthLabel} Expenses
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-sm text-destructive">
-            Failed to load expenses
-            {error instanceof Error && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {error.message}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-    return (
+  return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium text-muted-foreground">
@@ -83,9 +19,9 @@ export function MonthlySummaryExpensesWidget() {
             <p className="text-sm">No expenses this month</p>
           </div>
         ) : (
-            <ExpenseList 
-              expenses={expenses}
-            />
+          <ExpenseList
+            expenses={expenses}
+          />
         )}
       </CardContent>
     </Card>

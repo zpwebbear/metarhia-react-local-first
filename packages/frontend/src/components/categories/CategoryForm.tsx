@@ -1,7 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
-import { createPortal } from 'react-dom'
-import { createCategory, updateCategory } from '@/services/categories'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -18,10 +15,10 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { useApplicationStore } from '@/store/use-application-store'
 import type { Category } from '@/types'
+import { createPortal } from 'react-dom'
+import { useForm } from 'react-hook-form'
 
 interface CategoryFormData {
   name: string
@@ -34,7 +31,6 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProps) {
-  const queryClient = useQueryClient()
   const isEditing = !!category
 
   // Form setup
@@ -44,46 +40,17 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     },
   })
 
-  // Create category mutation
-  const createCategoryMutation = useMutation({
-    mutationFn: createCategory,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['statistics'] })
-      form.reset()
-      handleClose()
-      onSuccess()
-    },
-    onError: (error) => {
-      console.error('Failed to create category:', error)
-    },
-  })
-
-  // Update category mutation
-  const updateCategoryMutation = useMutation({
-    mutationFn: (data: CategoryFormData) => {
-      if (!category) throw new Error('No category to update')
-      return updateCategory(category.id, data)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['statistics'] })
-      handleClose()
-      onSuccess()
-    },
-    onError: (error) => {
-      console.error('Failed to update category:', error)
-    },
-  })
-
-  const mutation = isEditing ? updateCategoryMutation : createCategoryMutation
+  const editCategory = useApplicationStore(state => state.editCategory);
+  const createCategory = useApplicationStore(state => state.createCategory);
 
   const onSubmit = (data: CategoryFormData) => {
     if (isEditing) {
-      updateCategoryMutation.mutate(data)
+      editCategory(category.id, data)
     } else {
-      createCategoryMutation.mutate(data)
+      createCategory(data)
     }
+
+    onSuccess()
   }
 
   const handleClose = () => {
@@ -105,14 +72,6 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
             }
           </DialogDescription>
         </DialogHeader>
-
-        {mutation.isError && (
-          <Alert>
-            <AlertDescription>
-              Failed to {isEditing ? 'update' : 'create'} category: {mutation.error?.message}
-            </AlertDescription>
-          </Alert>
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -144,17 +103,12 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                disabled={mutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={mutation.isPending}
               >
-                {mutation.isPending && (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                )}
                 {isEditing ? 'Update' : 'Create'}
               </Button>
             </div>

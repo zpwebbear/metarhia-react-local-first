@@ -1,16 +1,16 @@
 export interface StatisticsResponse {
   total: number
   categories: Array<{
-    categoryId: number
+    categoryId: string
     categoryName: string
     amount: number
   }>
 }
 
 export interface StatisticsParams {
-  from?: string // YYYY-MM-DD format
-  to?: string // YYYY-MM-DD format
-  categoryId?: number
+  from?: string | null // YYYY-MM-DD format
+  to?: string | null // YYYY-MM-DD format
+  categoryId?: string | null
 }
 
 const API_BASE_URL = 'http://localhost:3000'

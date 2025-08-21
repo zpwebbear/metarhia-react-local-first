@@ -1,10 +1,6 @@
-import { useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useForm } from 'react-hook-form'
 import { AddExpenseButton } from '@/components/home/AddExpenseButton'
-import { createExpense } from '@/services/expenses'
-import { fetchCategories, createCategory } from '@/services/categories'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -28,13 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Plus, Loader2 } from 'lucide-react'
-import { getCurrentMonthDateRange } from '@/utils/date'
+import { useApplicationStore } from '@/store/use-application-store'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useForm } from 'react-hook-form'
 
 interface ExpenseFormData {
   name: string
@@ -49,12 +45,9 @@ interface NewCategoryFormData {
 }
 
 export function AddExpenseWidget() {
-  const currentMonthRange = getCurrentMonthDateRange()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false)
-  const queryClient = useQueryClient()
 
-  // Form for expense creation
   const expenseForm = useForm<ExpenseFormData>({
     defaultValues: {
       name: '',
@@ -65,79 +58,25 @@ export function AddExpenseWidget() {
     },
   })
 
-  // Form for new category creation
   const categoryForm = useForm<NewCategoryFormData>({
     defaultValues: {
       name: '',
     },
   })
 
-  // Fetch categories
-  const {
-    data: categories,
-    isLoading: categoriesLoading,
-    isError: categoriesError,
-    error: categoriesErrorDetails,
-  } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  })
-
-  // Mutation for creating expense
-  const createExpenseMutation = useMutation({
-    mutationFn: (data: ExpenseFormData) =>
-      createExpense({
-        name: data.name,
-        amount: Number(data.amount),
-        categoryId: Number(data.categoryId),
-        date: data.date,
-        description: data.description,
-      }),
-    onSuccess: () => {
-      // Invalidate and refetch expenses data
-      queryClient.invalidateQueries({ queryKey: ['expenses'] })
-      queryClient.invalidateQueries({ queryKey: ['expenses', 'current-month', currentMonthRange.from, currentMonthRange.to] })
-      queryClient.invalidateQueries({ queryKey: ['statistics'] })
-      queryClient.invalidateQueries({ queryKey: ['statistics', 'current-month', currentMonthRange.from, currentMonthRange.to] })
-
-      // Reset form and close dialog
-      expenseForm.reset()
-      setIsDialogOpen(false)
-    },
-    onError: (error) => {
-      console.error('Failed to create expense:', error)
-    },
-  })
-
-  // Mutation for creating new category
-  const createCategoryMutation = useMutation({
-    mutationFn: (data: NewCategoryFormData) =>
-      createCategory({
-        name: data.name,
-      }),
-    onSuccess: (newCategory) => {
-      // Invalidate categories to refetch with new category
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-
-      // Set the newly created category as selected
-      expenseForm.setValue('categoryId', newCategory.id)
-
-      // Reset category form and hide the new category form
-      categoryForm.reset()
-      setIsCreatingNewCategory(false)
-    },
-    onError: (error) => {
-      console.error('Failed to create category:', error)
-    },
-  })
-
+  const categories = useApplicationStore((state) => state.categories);
+  const createCategory = useApplicationStore((state) => state.createCategory);
+  const createExpense = useApplicationStore((state) => state.createExpense);
   const onSubmitExpense = (data: ExpenseFormData) => {
-    createExpenseMutation.mutate(data)
+    createExpense(data)
+    handleCloseDialog()
   }
 
-  const onSubmitNewCategory = (data: NewCategoryFormData) => {
-    createCategoryMutation.mutate(data)
+  const onSubmitNewCategory = async (data: NewCategoryFormData) => {
+    const newCategory: { id: string } = await createCategory(data)
+    expenseForm.setValue('categoryId', newCategory.id)
+    categoryForm.reset()
+    setIsCreatingNewCategory(false)
   }
 
   const handleAddExpense = () => {
@@ -163,14 +102,6 @@ export function AddExpenseWidget() {
               Fill in the details to add a new expense to your records.
             </DialogDescription>
           </DialogHeader>
-
-          {categoriesError && (
-            <Alert>
-              <AlertDescription>
-                Failed to load categories: {categoriesErrorDetails?.message}
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Form {...expenseForm}>
             <form onSubmit={expenseForm.handleSubmit(onSubmitExpense)} className="space-y-4">
@@ -242,17 +173,16 @@ export function AddExpenseWidget() {
                             if (value === 'new') {
                               setIsCreatingNewCategory(true)
                             } else {
-                              field.onChange(Number(value))
+                              field.onChange(value)
                             }
                           }}
-                          disabled={categoriesLoading}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {categories?.map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
                                 {category.name}
                               </SelectItem>
                             ))}
@@ -293,38 +223,17 @@ export function AddExpenseWidget() {
                 )}
               />
 
-              {createExpenseMutation.isError && (
-                <Alert>
-                  <AlertDescription>
-                    Failed to create expense: {createExpenseMutation.error?.message}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {createCategoryMutation.isError && (
-                <Alert>
-                  <AlertDescription>
-                    Failed to create category: {createCategoryMutation.error?.message}
-                  </AlertDescription>
-                </Alert>
-              )}
-
               <div className="flex gap-2 justify-end pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleCloseDialog}
-                  disabled={createExpenseMutation.isPending}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createExpenseMutation.isPending || categoriesLoading}
                 >
-                  {createExpenseMutation.isPending && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  )}
                   Add Expense
                 </Button>
               </div>
@@ -378,11 +287,7 @@ export function AddExpenseWidget() {
                       <Button
                         type="submit"
                         size="sm"
-                        disabled={createCategoryMutation.isPending}
                       >
-                        {createCategoryMutation.isPending && (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        )}
                         Create
                       </Button>
                       <Button

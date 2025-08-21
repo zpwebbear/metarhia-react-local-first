@@ -1,43 +1,30 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { ExpenseList } from '@/components/home/ExpenseList'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ExpenseList } from '@/components/home/ExpenseList'
-import { fetchExpenses } from '@/services/expenses'
-import { fetchCategories } from '@/services/categories'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useApplicationStore } from '@/store/use-application-store'
 import type { ExpenseFilters } from '@/types'
 import { CalendarIcon, FilterIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 export function ExpensesWidget() {
-  const [filters, setFilters] = useState<Pick<ExpenseFilters, 'from' | 'to' | 'categoryId'>>({})
+  const filters = useApplicationStore(state => state.filters);
+  const setFilters = useApplicationStore(state => state.setFilters);
+  const resetFilters = useApplicationStore(state => state.resetFilters);
+  const filterExpenses = useApplicationStore(state => state.filterExpenses);
+  const categories = useApplicationStore(state => state.categories);
+  const expenses = useApplicationStore(state => state.expenses);
+
   const [tempFilters, setTempFilters] = useState<Pick<ExpenseFilters, 'from' | 'to' | 'categoryId'>>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  // Fetch categories for the filter dropdown
-  const {
-    data: categories = [],
-    isLoading: categoriesLoading
-  } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-    staleTime: 1000 * 60 * 10, // 10 minutes - categories don't change often
-  })
 
-  // Fetch expenses with current filters
-  const {
-    data: expenses = [],
-    isLoading: expensesLoading,
-    isError,
-    error
-  } = useQuery({
-    queryKey: ['expenses', 'filtered', filters],
-    queryFn: () => fetchExpenses(filters),
-    staleTime: 1000 * 60 * 2, // 2 minutes
-  })
+  const filteredExpenses = useMemo(() => {
+    // Call the function obtained from the store
+    return filterExpenses(filters);
+  }, [filters, filterExpenses, expenses]);
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
@@ -47,12 +34,12 @@ export function ExpensesWidget() {
   const handleClearFilters = () => {
     const emptyFilters = {}
     setTempFilters(emptyFilters)
-    setFilters(emptyFilters)
+    resetFilters()
     setFiltersOpen(false)
   }
 
-  const hasActiveFilters = Object.values(filters).some(value => value !== undefined && value !== '')
-  const hasActiveFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== '').length
+  const hasActiveFilters = Object.values(filters).some(value => value !== null && value !== '')
+  const hasActiveFiltersCount = Object.values(filters).filter(v => v !== null && v !== '').length
 
   const renderFiltersPopover = () => (
     <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -131,7 +118,7 @@ export function ExpensesWidget() {
               onValueChange={(value) => 
                 setTempFilters(prev => ({ 
                   ...prev, 
-                  categoryId: value === 'all' ? undefined : parseInt(value, 10)
+                  categoryId: value === 'all' ? undefined : value
                 }))
               }
             >
@@ -140,15 +127,13 @@ export function ExpensesWidget() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All categories</SelectItem>
-                {categoriesLoading ? (
-                  <SelectItem value="loading" disabled>Loading...</SelectItem>
-                ) : (
+                {
                   categories.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}
                     </SelectItem>
                   ))
-                )}
+                }
               </SelectContent>
             </Select>
           </div>
@@ -165,36 +150,8 @@ export function ExpensesWidget() {
   )
 
   const renderExpensesList = () => {
-    if (expensesLoading) {
-      return (
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-              <Skeleton className="h-4 w-12" />
-            </div>
-          ))}
-        </div>
-      )
-    }
 
-    if (isError) {
-      return (
-        <div className="text-sm text-destructive">
-          Failed to load expenses
-          {error instanceof Error && (
-            <div className="text-xs text-muted-foreground mt-1">
-              {error.message}
-            </div>
-          )}
-        </div>
-      )
-    }
-
-    if (expenses.length === 0) {
+    if (filteredExpenses.length === 0) {
       return (
         <div className="text-center text-muted-foreground py-8">
           <p className="text-sm">No expenses found</p>
@@ -207,7 +164,7 @@ export function ExpensesWidget() {
 
     return (
       <div className="max-h-[600px] overflow-y-auto pr-1">
-        <ExpenseList expenses={expenses} />
+        <ExpenseList expenses={filteredExpenses} />
       </div>
     )
   }
