@@ -7,6 +7,8 @@ const ASSETS = [
   '/icon.svg',
 ];
 
+const PORT = 8000;
+
 class SyncWorker {
   constructor(state = new Map()) {
     this.websocket = null;
@@ -234,11 +236,13 @@ self.addEventListener('activate', (event) => {
 });
 
 const connect = async () => {
+  console.log('Service Worker: Connecting to WebSocket...');
   if (syncWorker.connected || syncWorker.connecting) return;
   syncWorker.connecting = true;
 
   const protocol = self.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const url = `${protocol}//${self.location.host}`;
+  const url = `${protocol}//${self.location.hostname}:${PORT}`;
+  console.log("Connecting to WebSocket:", url);
   syncWorker.websocket = new WebSocket(url);
 
   syncWorker.websocket.onopen = () => {

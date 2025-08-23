@@ -6,6 +6,7 @@
   "scripts": {
     "install:all": "npm install",
     "dev": "concurrently  \"npm run docker:dev -w backend\" \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev-local-first": "concurrently \"npm run server -w backend\" \"npm run dev -w frontend\"",
     "migrate": "npm run migrate -w backend"
   },
   "workspaces": [

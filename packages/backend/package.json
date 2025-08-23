@@ -17,6 +17,7 @@
     "test:teardown": "NODE_ENV=test node -e \"require('./test/test-migrator').TestMigrator.prototype.dropTestDatabase.call(new (require('./test/test-migrator')).TestMigrator())\"",
     "start": "fastify start -l info app.js",
     "dev": "fastify start -w -l info -P app.js",
+    "server": "node server.js",
     "docker:dev": "docker compose up",
     "migrate": "node migrate.js"
   },
@@ -29,11 +30,15 @@
     "@fastify/env": "^5.0.2",
     "@fastify/postgres": "^6.0.2",
     "@fastify/sensible": "^6.0.0",
+    "@fastify/websocket": "^11.2.0",
     "dotenv": "^17.2.1",
     "fastify": "^5.0.0",
     "fastify-cli": "^7.4.0",
     "fastify-plugin": "^5.0.0",
     "pg": "^8.16.3",
     "postgrator": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
   }
 }
