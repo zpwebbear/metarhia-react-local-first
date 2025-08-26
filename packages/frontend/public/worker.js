@@ -296,6 +296,7 @@ const events = {
     syncWorker.lastDeltaId += data.length;
     broadcast({ type: 'delta', data }, source.id);
     syncWorker.delivery({ type: 'delta', data });
+    console.log('Worker | Delta applied and broadcasted:', data);
   },
   ping: (source) => {
     source.postMessage({ type: 'pong' });
