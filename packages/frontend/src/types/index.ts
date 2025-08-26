@@ -40,3 +40,12 @@ export interface StatisticsData {
     amount: number
   }>
 }
+
+export interface ApplicationStore {
+  isConnected: boolean
+  online: boolean
+  prompt: Event | null;
+  clearDatabase: () => void
+  updateCache: () => void
+  install: () => void
+}
