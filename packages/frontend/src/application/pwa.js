@@ -138,6 +138,7 @@ class Application extends EventEmitter {
   }
 
   post(data) {
+    if(data.type !== 'ping') this.logger.log('PWA | Posting message to worker:', data);
     this.worker.postMessage(data);
   }
 

@@ -73,6 +73,7 @@ class ExpenseTrackerApplication extends Application {
 
   async createCategory(createCategoryDto) {
     const delta = this.addCategory(createCategoryDto);
+    console.log('Domain | Creating category with delta:', delta);
     this.post({ type: 'delta', data: [delta] });
     if (this.connected) {
       this.logger.log('Sent category:', delta);
