@@ -49,6 +49,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
+      queryClient.invalidateQueries({ queryKey: ['expenses'] })
       queryClient.invalidateQueries({ queryKey: ['statistics'] })
       form.reset()
       handleClose()

@@ -1,9 +1,9 @@
 export interface Expense {
-  id: number
+  id: string
   name: string
   amount: number
   category: {
-    id: number
+    id: string
     name: string
     created_at: string
     updated_at: string
@@ -15,17 +15,17 @@ export interface Expense {
 }
 
 export interface Category {
-  id: number
+  id: string
   name: string
   created_at: string
   updated_at: string
 }
 
 export interface ExpenseFilters {
-  categoryId?: number
-  from?: string  // YYYY-MM-DD format
-  to?: string    // YYYY-MM-DD format
-  search?: string
+  categoryId?: string | null
+  from?: string | null
+  to?: string | null
+  search?: string | null
 }
 
 export interface StatisticsData {

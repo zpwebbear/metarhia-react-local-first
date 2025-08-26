@@ -39,7 +39,7 @@ import { getCurrentMonthDateRange } from '@/utils/date'
 interface ExpenseFormData {
   name: string
   amount: number
-  categoryId: number | string
+  categoryId: string
   date: string
   description?: string
 }
@@ -90,7 +90,7 @@ export function AddExpenseWidget() {
       createExpense({
         name: data.name,
         amount: Number(data.amount),
-        categoryId: Number(data.categoryId),
+        categoryId: data.categoryId,
         date: data.date,
         description: data.description,
       }),
@@ -242,7 +242,7 @@ export function AddExpenseWidget() {
                             if (value === 'new') {
                               setIsCreatingNewCategory(true)
                             } else {
-                              field.onChange(Number(value))
+                              field.onChange(value)
                             }
                           }}
                           disabled={categoriesLoading}
@@ -252,7 +252,7 @@ export function AddExpenseWidget() {
                           </SelectTrigger>
                           <SelectContent>
                             {categories?.map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
+                              <SelectItem key={category.id} value={category.id}>
                                 {category.name}
                               </SelectItem>
                             ))}

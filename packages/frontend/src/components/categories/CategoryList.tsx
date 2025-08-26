@@ -1,15 +1,14 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Edit, Trash2 } from 'lucide-react'
 import type { Category } from '@/types'
+import { Edit } from 'lucide-react'
 
 interface CategoryListProps {
   categories: Category[]
-  getCategoryUsage: (categoryId: number) => number
+  getCategoryUsage: (categoryId: string) => number
   onEdit: (category: Category) => void
-  onDelete: (category: Category) => void
   statisticsLoading: boolean
 }
 
@@ -17,7 +16,6 @@ export function CategoryList({
   categories,
   getCategoryUsage,
   onEdit,
-  onDelete,
   statisticsLoading,
 }: CategoryListProps) {
   const formatCurrency = (amount: number) => {
@@ -71,15 +69,6 @@ export function CategoryList({
                   >
                     <Edit className="h-4 w-4" />
                     <span className="sr-only">Edit category</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(category)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete category</span>
                   </Button>
                 </div>
               </div>

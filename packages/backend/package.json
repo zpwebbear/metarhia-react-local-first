@@ -17,6 +17,7 @@
     "test:teardown": "NODE_ENV=test node -e \"require('./test/test-migrator').TestMigrator.prototype.dropTestDatabase.call(new (require('./test/test-migrator')).TestMigrator())\"",
     "start": "fastify start -l info app.js",
     "dev": "fastify start -w -l info -P app.js",
+    "server": "node server.js",
     "docker:dev": "docker compose up",
     "migrate": "node migrate.js"
   },

@@ -131,7 +131,7 @@ export function ExpensesWidget() {
               onValueChange={(value) => 
                 setTempFilters(prev => ({ 
                   ...prev, 
-                  categoryId: value === 'all' ? undefined : parseInt(value, 10)
+                  categoryId: value === 'all' ? undefined : value
                 }))
               }
             >
