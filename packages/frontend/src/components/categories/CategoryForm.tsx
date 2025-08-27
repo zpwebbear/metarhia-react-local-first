@@ -68,6 +68,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       queryClient.invalidateQueries({ queryKey: ['statistics'] })
+      queryClient.invalidateQueries({ queryKey: ['expenses'] })
       handleClose()
       onSuccess()
     },

@@ -39,7 +39,7 @@ import { getCurrentMonthDateRange } from '@/utils/date'
 interface ExpenseFormData {
   name: string
   amount: number
-  categoryId: number | string
+  categoryId: string
   date: string
   description?: string
 }
@@ -121,7 +121,7 @@ export function AddExpenseWidget() {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
 
       // Set the newly created category as selected
-      expenseForm.setValue('categoryId', newCategory.id)
+      expenseForm.setValue('categoryId', newCategory.id.toString())
 
       // Reset category form and hide the new category form
       categoryForm.reset()

@@ -1,17 +1,16 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Skeleton } from '@/components/ui/skeleton'
-import { fetchCategories, deleteCategory } from '@/services/categories'
-import { fetchStatistics } from '@/services/statistics'
-import { FilterIcon, CalendarIcon, Plus } from 'lucide-react'
 import { CategoryForm } from '@/components/categories/CategoryForm'
 import { CategoryList } from '@/components/categories/CategoryList'
-import { ConfirmationDialog } from '@/components/categories/ConfirmationDialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Skeleton } from '@/components/ui/skeleton'
+import { fetchCategories } from '@/services/categories'
+import { fetchStatistics } from '@/services/statistics'
 import type { Category } from '@/types'
+import { useQuery } from '@tanstack/react-query'
+import { CalendarIcon, FilterIcon, Plus } from 'lucide-react'
+import { useState } from 'react'
 
 export function CategoriesWidget() {
   const [filters, setFilters] = useState<{ from?: string; to?: string }>({})
@@ -19,9 +18,6 @@ export function CategoriesWidget() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null)
-
-  const queryClient = useQueryClient()
 
   // Fetch categories
   const {
@@ -45,20 +41,6 @@ export function CategoriesWidget() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 
-  // Delete category mutation
-  const deleteCategoryMutation = useMutation({
-    mutationFn: deleteCategory,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['statistics'] })
-      queryClient.invalidateQueries({ queryKey: ['expenses'] })
-      setDeletingCategory(null)
-    },
-    onError: (error) => {
-      console.error('Failed to delete category:', error)
-    },
-  })
-
   const handleApplyFilters = () => {
     setFilters(tempFilters)
     setFiltersOpen(false)
@@ -69,16 +51,6 @@ export function CategoriesWidget() {
     setTempFilters(emptyFilters)
     setFilters(emptyFilters)
     setFiltersOpen(false)
-  }
-
-  const handleDeleteCategory = (category: Category) => {
-    setDeletingCategory(category)
-  }
-
-  const handleConfirmDelete = () => {
-    if (deletingCategory) {
-      deleteCategoryMutation.mutate(deletingCategory.id)
-    }
   }
 
   const handleEditCategory = (category: Category) => {
@@ -233,7 +205,6 @@ export function CategoriesWidget() {
           categories={categories}
           getCategoryUsage={getCategoryUsage}
           onEdit={handleEditCategory}
-          onDelete={handleDeleteCategory}
           statisticsLoading={statisticsLoading}
         />
       </div>
@@ -280,21 +251,6 @@ export function CategoriesWidget() {
           category={editingCategory}
           onSuccess={handleEditSuccess}
           onCancel={handleCloseEdit}
-        />
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      {deletingCategory && (
-        <ConfirmationDialog
-          isOpen={true}
-          onClose={() => setDeletingCategory(null)}
-          onConfirm={handleConfirmDelete}
-          title="Delete Category"
-          description={`Are you sure you want to delete "${deletingCategory.name}"? This action cannot be undone. Any expenses in this category will be moved to "Others".`}
-          confirmText="Delete"
-          cancelText="Cancel"
-          loading={deleteCategoryMutation.isPending}
-          variant="destructive"
         />
       )}
     </>

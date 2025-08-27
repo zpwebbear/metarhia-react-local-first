@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "install:all": "npm install",
-    "dev": "concurrently  \"npm run docker:dev -w backend\" \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "prepare:env": "npm run prepare:env -w backend",
+    "infrastructure:start": "npm run docker:start -w backend",
+    "infrastructure:stop": "npm run docker:stop -w backend",
     "migrate": "npm run migrate -w backend"
   },
   "workspaces": [
