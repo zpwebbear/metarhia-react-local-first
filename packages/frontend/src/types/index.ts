@@ -51,6 +51,7 @@ export interface ApplicationStore {
   prompt: Event | null; 
   currentMonthSummary: number;
   currentMonthExpenses: Expense[];
+  online: boolean;
 
   // Actions
   setFilters: (newFilters: Partial<Filters>) => void;

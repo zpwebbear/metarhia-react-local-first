@@ -68,5 +68,6 @@ app.on('stateCleared', syncStateWithStore);
 app.on('databaseCleared', syncStateWithStore);
 app.on('status', syncStateWithStore);
 app.on('network', syncStateWithStore);
+app.on('install', syncStateWithStore);
 
 export { useApplicationStore };
