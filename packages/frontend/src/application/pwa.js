@@ -81,9 +81,13 @@ class Application extends EventEmitter {
 
   #setupServiceWorker() {
     const worker = navigator.serviceWorker;
-    worker.register(this.serviceWorker);
+    if (!worker.controller) {
+      this.logger.log("Worker is not controlled");
+      worker.register(this.serviceWorker);
+    }
     const ping = () => this.post({ type: 'ping' });
     worker.ready.then((registration) => {
+      this.logger.log('Service Worker is ready');
       setInterval(ping, this.config.pingInterval);
       this.worker = registration.active;
       const data = { clientId: this.clientId };
@@ -138,7 +142,7 @@ class Application extends EventEmitter {
   }
 
   post(data) {
-    if(data.type !== 'ping') this.logger.log('PWA | Posting message to worker:', data);
+    if (data.type !== 'ping') this.logger.log('PWA | Posting message to worker:', data);
     this.worker.postMessage(data);
   }
 

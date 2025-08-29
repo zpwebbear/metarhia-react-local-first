@@ -270,8 +270,33 @@ class ExpenseTrackerApplication extends Application {
   }
 }
 
+class TableFormatter {
+  constructor(expenseTrackerApp) {
+    this.app = expenseTrackerApp;
+  }
+
+  format(){
+    return this.app.expenses.map(expense => {
+      return {
+        id: expense.id,
+        name: expense.name,
+        amount: expense.amount,
+        category: expense.category.name,  
+        date: expense.date,
+        numberInCategory: 0 // calculated field
+      };
+    });
+  }
+}
+
+class Settings extends Application {
+
+}
+
 const logger = console;
 const app = new ExpenseTrackerApplication({ logger, syncTimeout: 2000 });
+const settings = new Settings({ logger });
+const expenseAppTableFormatter = new TableFormatter(app);
 
 app.on('message', (data) => {
   app.logger.log('Message:', data.content);
@@ -318,4 +343,4 @@ app.on('delta', (data) => {
   app.emit('deltaSet');
 });
 
-export { ExpenseTrackerApplication, app };
+export { ExpenseTrackerApplication, app, expenseAppTableFormatter };

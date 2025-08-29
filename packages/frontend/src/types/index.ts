@@ -49,3 +49,11 @@ export interface ApplicationStore {
   updateCache: () => void
   install: () => void
 }
+
+export interface ExpenseRow {
+  id: string;
+  name: string;
+  amount: number;
+  category: string;
+  date: string;
+}
